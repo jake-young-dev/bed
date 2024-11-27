@@ -12,7 +12,7 @@ const (
 	saveWorldCommand   = "save-all"
 	autosaveOnCommand  = "save-on"
 	autosaveOffCommand = "save-off"
-	restartCommand     = "restart"
+	restartCommand     = "stop"
 )
 
 /*
