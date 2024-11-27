@@ -26,9 +26,6 @@ const (
 
 	//expire date range
 	expirationRange = -1 //delete after upload (no extra zip files kept in minio, rolling backups)
-
-	//how often backups are taken, backups are taken daily at midnight (server timezone)
-	backupRate = "@daily"
 )
 
 type Cron struct {
@@ -45,7 +42,7 @@ type ICron interface {
 func NewCronHandler() *Cron {
 	c := cronjob.New()
 	cr := &Cron{}
-	c.AddFunc(backupRate, cr.takeBackup)
+	c.AddFunc("@daily", cr.takeBackup)
 	cr.job = c
 	return cr
 }
