@@ -42,8 +42,7 @@ func NewCloudHandler(url, id, key, bucket string) (*Cloud, error) {
 	}, nil
 }
 
-// upload file to the "/data/" directory, minio bucket name is supplied during the struct creation and all file
-// uploads have a 5 minute timeout
+// upload file to the "/data/" directory to the supplied minio bucket, all file uploads have a 5 minute timeout
 func (c *Cloud) Upload(name string) error {
 	path := fmt.Sprintf("/data/%s", name)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
@@ -57,8 +56,7 @@ func (c *Cloud) Upload(name string) error {
 	return nil
 }
 
-// delete file from minio, minio bucket name is supplied during the struct creation and all file
-// uploads have a 5 minute timeout
+// delete file from minio, minio bucket name is supplied during the struct creation and all file uploads have a 5 minute timeout
 func (c *Cloud) Delete(name string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()

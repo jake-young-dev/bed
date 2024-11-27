@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/jake-young-dev/bed/file"
@@ -13,13 +14,21 @@ import (
 )
 
 const (
+	//used for easier log searching and to divide backup iterations in logs
 	logDivider = "------------"
-	filePath   = "/data/world-backup-%s.tar.gz"
-	worldDir   = "/data/world/"
-	fileName   = "world-backup-%s.tar.gz"
 
-	//expire dates
-	expirationRange = -1 //only keeping one day
+	//path to zipped world directory
+	filePath = "/data/world-backup-%s.tar.gz"
+	//world directory
+	worldDir = "/data/world/"
+	//backup name skeleton
+	fileName = "world-backup-%s.tar.gz"
+
+	//expire date range
+	expirationRange = -1 //delete after upload (no extra zip files kept in minio, rolling backups)
+
+	//how often backups are taken, backups are taken daily at midnight (server timezone)
+	backupRate = "@daily"
 )
 
 type Cron struct {
@@ -32,11 +41,11 @@ type ICron interface {
 	takeBackup()
 }
 
+// creates a new cron handler and add backup function
 func NewCronHandler() *Cron {
-	//i don't really love this tbh
 	c := cronjob.New()
 	cr := &Cron{}
-	c.AddFunc("@daily", cr.takeBackup)
+	c.AddFunc(backupRate, cr.takeBackup)
 	cr.job = c
 	return cr
 }
@@ -49,14 +58,19 @@ func (c *Cron) Stop() {
 	c.job.Stop()
 }
 
-// this func is huge and needs to be split
+// the main backup function for the cronjob, this func is huge and needs to be split up
 func (c *Cron) takeBackup() {
 	//logging date for easy searching
 	log.Printf("%s/%s/%s\n", logDivider, time.Now().Format("01-02-2006"), logDivider)
 
 	//create rcon client
-	rcon := minecraft.NewRconHandler(os.Getenv("RCON_MC_CONTAINER"))
-	err := rcon.Connect(os.Getenv("RCON_PASSWORD"))
+	port, err := strconv.Atoi(os.Getenv("RCON_PORT"))
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	rcon := minecraft.NewRconHandler(os.Getenv("RCON_MC_CONTAINER"), port)
+	err = rcon.Connect(os.Getenv("RCON_PASSWORD"))
 	if err != nil {
 		log.Println(err)
 		return
@@ -65,6 +79,7 @@ func (c *Cron) takeBackup() {
 
 	log.Println("connected to server")
 
+	//send alert to server
 	err = rcon.AlertPlayers("backup's will be taken in 1 minute")
 	if err != nil {
 		log.Println(err)
@@ -81,14 +96,16 @@ func (c *Cron) takeBackup() {
 		return
 	}
 
+	//disabling autosaves for a full world save
 	log.Println("autosaves disabled")
 	err = rcon.DisableAutosaves()
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	defer rcon.EnableAutosaves()
+	defer rcon.EnableAutosaves() //ensure to enable them after backup
 
+	//full save
 	log.Println("taking full save")
 	err = rcon.WorldSave()
 	if err != nil {
@@ -119,6 +136,7 @@ func (c *Cron) takeBackup() {
 	}
 	defer os.Remove(savePath)
 
+	//minio upload
 	mc, err := file.NewCloudHandler(os.Getenv("MINIO_URL"), os.Getenv("MINIO_ID"), os.Getenv("MINIO_KEY"), os.Getenv("MINIO_BUCKET"))
 	if err != nil {
 		log.Println(err)
@@ -132,23 +150,29 @@ func (c *Cron) takeBackup() {
 		return
 	}
 
+	//cleanup expired backups
 	log.Println("cleanup")
 	mc.Delete(expFile)
 
 	log.Println("done")
 
-	err = rcon.AlertPlayers("the server will be restarted in 5 seconds")
-	if err != nil {
-		log.Println(err)
-		return
-	}
+	//do you want us to restart the server
+	if os.Getenv("SERVER_RESTART") == "yes" {
+		//restart server
+		log.Println("restarting server")
+		err = rcon.AlertPlayers("the server will be restarted in 5 seconds")
+		if err != nil {
+			log.Println(err)
+			return
+		}
 
-	time.Sleep(time.Second * 5)
+		time.Sleep(time.Second * 5)
 
-	//trigger system restart to avoid lag
-	err = rcon.RestartServer()
-	if err != nil {
-		log.Println(err)
-		return
+		//trigger system restart to avoid lag
+		err = rcon.RestartServer()
+		if err != nil {
+			log.Println(err)
+			return
+		}
 	}
 }

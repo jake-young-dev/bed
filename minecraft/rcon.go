@@ -13,6 +13,7 @@ const (
 	autosaveOnCommand  = "save-on"
 	autosaveOffCommand = "save-off"
 	restartCommand     = "stop"
+	alertCommand       = "say %s"
 )
 
 /*
@@ -33,9 +34,9 @@ type IRcon interface {
 	RestartServer() error
 }
 
-func NewRconHandler(url string) *Rcon {
+func NewRconHandler(url string, port int) *Rcon {
 	return &Rcon{
-		client: mcr.NewClient(url, mcr.WithTimeout(5*time.Second)),
+		client: mcr.NewClient(url, mcr.WithTimeout(5*time.Second), mcr.WithPort(port)),
 	}
 }
 
@@ -48,7 +49,7 @@ func (r *Rcon) Close() error {
 }
 
 func (r *Rcon) AlertPlayers(alert string) error {
-	_, err := r.client.Command(fmt.Sprintf("say %s", alert))
+	_, err := r.client.Command(fmt.Sprintf(alertCommand, alert))
 	return err
 }
 
@@ -67,6 +68,7 @@ func (r *Rcon) DisableAutosaves() error {
 	return err
 }
 
+// runs the stop command on the server, ensure you have the restart policy set to always
 func (r *Rcon) RestartServer() error {
 	_, err := r.client.Command(restartCommand)
 	return err
