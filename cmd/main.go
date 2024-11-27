@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/signal"
 	"strings"
 
 	"github.com/jake-young-dev/bed/cron"
@@ -33,15 +32,16 @@ func main() {
 
 	log.Println("starting backup cron")
 	backup := cron.NewCronHandler()
-	backup.Run()
+	backup.TakeBackup()
+	// backup.Run()
 
-	//wait for interupt
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, os.Interrupt)
-	<-quit
+	// //wait for interupt
+	// quit := make(chan os.Signal, 1)
+	// signal.Notify(quit, os.Interrupt)
+	// <-quit
 
-	log.Println("stopping backup cron")
-	backup.Stop()
+	// log.Println("stopping backup cron")
+	// backup.Stop()
 }
 
 // validates the existence of necessary environment variables required to run the cron

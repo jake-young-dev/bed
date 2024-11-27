@@ -29,14 +29,14 @@ type Cron struct {
 type ICron interface {
 	Run()
 	Stop()
-	takeBackup()
+	TakeBackup()
 }
 
 func NewCronHandler() *Cron {
 	//i don't really love this tbh
 	c := cronjob.New()
 	cr := &Cron{}
-	c.AddFunc("@daily", cr.takeBackup)
+	c.AddFunc("@daily", cr.TakeBackup)
 	cr.job = c
 	return cr
 }
@@ -50,7 +50,7 @@ func (c *Cron) Stop() {
 }
 
 // this func is huge and needs to be split
-func (c *Cron) takeBackup() {
+func (c *Cron) TakeBackup() {
 	//logging date for easy searching
 	log.Printf("%s/%s/%s\n", logDivider, time.Now().Format("01-02-2006"), logDivider)
 
