@@ -8,15 +8,11 @@ import (
 )
 
 const (
-	fullPath = "/data/%s-backup.tar.gz"
-	worldDir = "/data/world/"
-	filename = "%s-backup.tar.gz"
-
 	//command strings
 	saveWorldCommand   = "save-all"
 	autosaveOnCommand  = "save-on"
 	autosaveOffCommand = "save-off"
-	restartCommand     = "restart"
+	restartCommand     = "stop"
 )
 
 /*

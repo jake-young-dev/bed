@@ -1,0 +1,23 @@
+version: "3.8"
+
+services:
+  bed:
+    restart: no
+    container_name: bed
+    build:
+      tags:
+        - "bed"
+      dockerfile: ./Dockerfile
+    volumes:
+      - modded-minecraft:/data
+    env_file:
+      - ./.env
+
+volumes:
+  modded-minecraft:
+    external: true
+
+networks:
+  default:
+    external: true
+    name: minecraft-server_default
