@@ -29,6 +29,18 @@ const (
 	SERVER_RESTART_NO  = "no"
 )
 
+// simple array to allow for a much smaller validation function
+var ENV_VARS_TO_VALIDATE = [8]string{
+	RCON_PASSWORD_ENV,
+	MC_CONTAINER_ENV,
+	RCON_PORT_ENV,
+	MINIO_URL_ENV,
+	MINIO_BUCKET_ENV,
+	MINIO_ACCESS_KEY_ENV,
+	MINIO_ACCESS_ID_ENV,
+	SERVER_RESTART_ENV,
+}
+
 // entry point
 func main() {
 	dotenv.Load()
@@ -55,36 +67,17 @@ func main() {
 func validateEnvironment() error {
 	var missingVars []string
 
-	//validate rcon variables
-	if _, exists := os.LookupEnv(RCON_PASSWORD_ENV); !exists {
-		missingVars = append(missingVars, RCON_PASSWORD_ENV)
-	}
-	if _, exists := os.LookupEnv(MC_CONTAINER_ENV); !exists {
-		missingVars = append(missingVars, MC_CONTAINER_ENV)
-	}
-	if _, exists := os.LookupEnv(RCON_PORT_ENV); !exists {
-		missingVars = append(missingVars, RCON_PORT_ENV)
-	}
-	//validate minio variables
-	if _, exists := os.LookupEnv(MINIO_BUCKET_ENV); !exists {
-		missingVars = append(missingVars, MINIO_BUCKET_ENV)
-	}
-	if _, exists := os.LookupEnv(MINIO_ACCESS_KEY_ENV); !exists {
-		missingVars = append(missingVars, MINIO_ACCESS_KEY_ENV)
-	}
-	if _, exists := os.LookupEnv(MINIO_URL_ENV); !exists {
-		missingVars = append(missingVars, MINIO_URL_ENV)
-	}
-	if _, exists := os.LookupEnv(MINIO_ACCESS_ID_ENV); !exists {
-		missingVars = append(missingVars, MINIO_ACCESS_ID_ENV)
-	}
-	//validate server variables
-	if _, exists := os.LookupEnv(SERVER_RESTART_ENV); !exists {
-		missingVars = append(missingVars, SERVER_RESTART_ENV)
-	} else {
-		//validate acceptable values
-		if os.Getenv(SERVER_RESTART_ENV) != SERVER_RESTART_YES && os.Getenv(SERVER_RESTART_ENV) != SERVER_RESTART_NO {
-			missingVars = append(missingVars, fmt.Sprintf("%s is set to an invalid value, use '%s' or '%s'", SERVER_RESTART_ENV, SERVER_RESTART_YES, SERVER_RESTART_NO))
+	//loop through environment variables and validate value if needed
+	for _, e := range ENV_VARS_TO_VALIDATE {
+		if _, exists := os.LookupEnv(e); !exists {
+			missingVars = append(missingVars, e)
+		} else {
+			if e == SERVER_RESTART_ENV {
+				//validate acceptable values
+				if os.Getenv(SERVER_RESTART_ENV) != SERVER_RESTART_YES && os.Getenv(SERVER_RESTART_ENV) != SERVER_RESTART_NO {
+					missingVars = append(missingVars, fmt.Sprintf("%s is set to an invalid value, use '%s' or '%s'", SERVER_RESTART_ENV, SERVER_RESTART_YES, SERVER_RESTART_NO))
+				}
+			}
 		}
 	}
 

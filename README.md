@@ -1,19 +1,17 @@
 # bed
 Don't forget to set your spawn!
 
+Bed is automated daily backups for Minecraft servers utilizing Minio as the storage bucket
+
 # Disclaimer
-this repo is unfinished, it may work when ran with docker compose but can experience breaking changes until a stable release. The end-game goal for this repo is to be a docker image that can be added to Minecraft server compose files for easy setup for world backups. If you are seeing this disclaimer I wouldn't recommend using this version of this software and to wait for the full release
+this repo is unfinished, the goal is for this to be a docker image, I recommend waiting for that release. This disclaimer will be replaced by usage docs and the improved compose file
 
 <hr />
 
 # Dev notes
 
-# TODO
-1. allow for users to change how often backups are grabbed (timezone and clock time, maybe), how many to keep (maybe)
-2. use iota to create a loop for env validation
-
 # Example compose file with bed
-## Do not use this yet, the image is not built
+## Do not use this yet, the image is not built (yet)
 ```
 version: "3.8"
 
@@ -50,6 +48,7 @@ services:
       MINIO_BUCKET: "bucket to save backup"
       MINIO_KEY: "minio access key"
       MINIO_ID: "minio client id"
+      SERVER_RESTART: "yes|no"
 
 volumes:
   mc-container:
