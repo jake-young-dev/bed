@@ -3,7 +3,7 @@ module github.com/jake-young-dev/bed
 go 1.22.6
 
 require (
-	github.com/jake-young-dev/mcr v1.0.0
+	github.com/jake-young-dev/mcr v1.0.1
 	github.com/jake-young-dev/quick-zip v0.0.1
 	github.com/joho/godotenv v1.5.1
 	github.com/minio/minio-go/v7 v7.0.80
